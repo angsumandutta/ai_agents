@@ -1,0 +1,52 @@
+{
+  "scan_time": "2026-05-20T12:06:36.686158Z",
+  "total_agents_detected": 2,
+  "total_tables_detected": 2,
+  "agents": [
+    {
+      "agent_name": "BigQuery Customer Insight Agent",
+      "agent_file": "agents\\bigquery_spark_agent.py",
+      "language": "Python",
+      "platform": "Custom",
+      "datasource_type": "bigquery",
+      "project": "databuckk8s",
+      "dataset": "new_data_set",
+      "table_name": "File_RM_Microsect",
+      "full_table_name": "databuckk8s.new_data_set.File_RM_Microsect",
+      "parent_project": "demoprojectfe",
+      "materialization_project": "newdemoproject-412013",
+      "materialization_dataset": "Test_Views",
+      "access_type": "Read",
+      "queries_found": [
+        "SELECT *\n            FROM `{full_table_name}`\n            WHERE {partition_filter}\n              AND RAND() < 0.03\n            LIMIT 50",
+        "SELECT *\n            FROM `{full_table_name}`\n            WHERE RAND() < 0.03\n            LIMIT 50"
+      ],
+      "tables_found": [],
+      "scan_status": "Scanned",
+      "last_scan": "2026-05-20T12:06:36.670131Z"
+    },
+    {
+      "agent_name": "databuck_agent_scanner.py",
+      "agent_file": "scanner\\databuck_agent_scanner.py",
+      "language": "Python",
+      "platform": "LangChain",
+      "datasource_type": "bigquery",
+      "project": "project",
+      "dataset": "dataset",
+      "table_name": "table",
+      "full_table_name": "project.dataset.table",
+      "parent_project": "",
+      "materialization_project": "",
+      "materialization_dataset": "",
+      "access_type": "Read",
+      "queries_found": [
+        "Extract basic SELECT queries from triple-quoted strings."
+      ],
+      "tables_found": [
+        "project.dataset.table"
+      ],
+      "scan_status": "Scanned",
+      "last_scan": "2026-05-20T12:06:36.682947Z"
+    }
+  ]
+}

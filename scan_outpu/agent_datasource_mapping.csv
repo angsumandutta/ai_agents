@@ -1,0 +1,3 @@
+agent_name,agent_file,language,platform,datasource_type,project,dataset,table_name,full_table_name,access_type,scan_status,last_scan
+BigQuery Customer Insight Agent,agents\bigquery_spark_agent.py,Python,Custom,bigquery,databuckk8s,new_data_set,File_RM_Microsect,databuckk8s.new_data_set.File_RM_Microsect,Read,Scanned,2026-05-20T12:06:36.670131Z
+databuck_agent_scanner.py,scanner\databuck_agent_scanner.py,Python,LangChain,bigquery,project,dataset,table,project.dataset.table,Read,Scanned,2026-05-20T12:06:36.682947Z

@@ -1,0 +1,2 @@
+agent_name,agent_purpose,agent_file,language,platform,datasource_type,project,dataset,table_name,full_table_name,query,access_type,confidence,scan_status,last_scan
+BigQuery Customer Insight Agent,Agent purpose inferred from code evidence.,agents\bigquery_spark_agent.py,Python,Custom,bigquery,databuckk8s,new_data_set,File_RM_Microsect,google.oauth2.credentials,Same partition handling style from your script.,Read,0.7,Scanned,2026-05-26T10:45:46.242096+00:00
