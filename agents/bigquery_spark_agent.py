@@ -33,6 +33,23 @@ class BigQuerySparkAgent:
         self.dataset = "new_data_set"
         self.materialization_dataset = "Test_Views"
         self.table_name = "Cruise_Policy_Driven_Dataset"
+        self.table_configs = [
+            {
+                "table_name": "Right_Target_20",
+                "work_type": "sampling",
+                "description": "Random quality sample for baseline inspection",
+            },
+            {
+                "table_name": "Right_Target_Rk",
+                "work_type": "ranking",
+                "description": "Top records based on rank-related columns",
+            },
+            {
+                "table_name": "Right_salary01",
+                "work_type": "salary_profile",
+                "description": "Salary-focused profiling and high-value segment sample",
+            },
+        ]
 
         # KMS flag logic similar to your DataBuck script
         # N = use WIF token
@@ -129,12 +146,12 @@ class BigQuerySparkAgent:
             credentials=credentials
         )
 
-    def get_partition_filter_sql(self, bq_client):
+    def get_partition_filter_sql(self, bq_client, table_name):
         """
         Same partition handling style from your script.
         """
 
-        full_table_name = f"{self.project}.{self.dataset}.{self.table_name}"
+        full_table_name = f"{self.project}.{self.dataset}.{table_name}"
         table = bq_client.get_table(full_table_name)
 
         if table.time_partitioning:
@@ -172,51 +189,87 @@ class BigQuerySparkAgent:
 
         return spark
 
-    def build_sample_query(self, partition_filter):
+    def _resolve_first_existing_column(self, bq_client, table_name, candidate_columns):
+        full_table_name = f"{self.project}.{self.dataset}.{table_name}"
+        table = bq_client.get_table(full_table_name)
+        existing_columns = {field.name.lower() for field in table.schema}
+
+        for column in candidate_columns:
+            if column.lower() in existing_columns:
+                return column
+
+        return None
+
+    def build_query_for_table(self, bq_client, table_name, work_type, partition_filter):
         """
-        Build sample query like your existing DataBuck script.
+        Build table-specific query so each table performs a different kind of work.
         """
 
-        full_table_name = f"{self.project}.{self.dataset}.{self.table_name}"
+        full_table_name = f"{self.project}.{self.dataset}.{table_name}"
+        where_clause = f"WHERE {partition_filter}" if partition_filter else ""
 
-        if partition_filter:
+        if work_type == "ranking":
+            rank_column = self._resolve_first_existing_column(
+                bq_client,
+                table_name,
+                ["rank", "rk", "score", "priority", "id"],
+            ) or "id"
             query = f"""
             SELECT *
             FROM `{full_table_name}`
-            WHERE {partition_filter}
-              AND RAND() < 0.03
-            LIMIT 50
+            {where_clause}
+            ORDER BY {rank_column} DESC
+            LIMIT 100
             """
-        else:
-            query = f"""
-            SELECT *
-            FROM `{full_table_name}`
-            WHERE RAND() < 0.03
-            LIMIT 50
-            """
+            return query
+
+        if work_type == "salary_profile":
+            salary_column = self._resolve_first_existing_column(
+                bq_client,
+                table_name,
+                ["salary", "amount", "total_compensation", "income", "pay"],
+            )
+            if salary_column:
+                partition_guard = f"{partition_filter} AND " if partition_filter else ""
+                query = f"""
+                SELECT *
+                FROM `{full_table_name}`
+                WHERE {partition_guard}{salary_column} IS NOT NULL
+                ORDER BY {salary_column} DESC
+                LIMIT 100
+                """
+                return query
+
+        partition_guard = f"{partition_filter} AND " if partition_filter else ""
+        query = f"""
+        SELECT *
+        FROM `{full_table_name}`
+        WHERE {partition_guard}RAND() < 0.03
+        LIMIT 50
+        """
 
         return query
 
-    def read_bigquery_dataframe(self):
+    def read_bigquery_dataframe(self, bq_client, table_config):
         """
-        Main method:
-        - Create BigQuery client
-        - Get partition filter
-        - Create Spark session
-        - Read BigQuery table using Spark connector
+        Reads one configured BigQuery table using table-specific query.
         """
 
-        bq_client = self.get_bigquery_client()
-        partition_filter = self.get_partition_filter_sql(bq_client)
+        table_name = table_config["table_name"]
+        work_type = table_config["work_type"]
+        partition_filter = self.get_partition_filter_sql(bq_client, table_name)
 
-        print(f"Partition filter: {partition_filter}")
+        print(f"Table: {table_name} | Work Type: {work_type} | Partition filter: {partition_filter}")
 
-        query = self.build_sample_query(partition_filter)
-
-        spark = self.create_spark_session()
+        query = self.build_query_for_table(
+            bq_client=bq_client,
+            table_name=table_name,
+            work_type=work_type,
+            partition_filter=partition_filter,
+        )
 
         reader = (
-            spark.read.format("bigquery")
+            self.spark.read.format("bigquery")
             .option("viewsEnabled", "true")
             .option("bigQueryDataTypes", "false")
             .option("materializationProject", self.materialization_project)
@@ -233,42 +286,54 @@ class BigQuerySparkAgent:
 
         df_spark = reader.load()
 
-        return spark, df_spark, query
+        return df_spark, query
 
     def run_agent(self):
         """
-        Agent execution method.
+        Agent execution method across multiple table-specific workloads.
         """
+        bq_client = self.get_bigquery_client()
+        self.spark = self.create_spark_session()
 
-        spark, df_spark, query = self.read_bigquery_dataframe()
+        table_results = []
 
-        print("Agent Name:", self.agent_name)
-        print("Datasource Type:", self.datasource_type)
-        print("Project:", self.project)
-        print("Dataset:", self.dataset)
-        print("Table:", self.table_name)
-        print("Query Used:", query)
+        try:
+            for table_config in self.table_configs:
+                df_spark, query = self.read_bigquery_dataframe(bq_client, table_config)
 
-        print("Schema:")
-        df_spark.printSchema()
+                print("Agent Name:", self.agent_name)
+                print("Datasource Type:", self.datasource_type)
+                print("Project:", self.project)
+                print("Dataset:", self.dataset)
+                print("Table:", table_config["table_name"])
+                print("Work Type:", table_config["work_type"])
+                print("Work Description:", table_config["description"])
+                print("Query Used:", query)
 
-        print("Sample Records:")
-        df_spark.show(10, truncate=False)
+                print("Schema:")
+                df_spark.printSchema()
 
-        result = {
+                print("Sample Records:")
+                df_spark.show(10, truncate=False)
+
+                table_results.append({
+                    "table_name": table_config["table_name"],
+                    "work_type": table_config["work_type"],
+                    "work_description": table_config["description"],
+                    "query": query,
+                    "columns": df_spark.columns,
+                    "record_count_sample": df_spark.count(),
+                })
+        finally:
+            self.spark.stop()
+
+        return {
             "agent_name": self.agent_name,
             "datasource_type": self.datasource_type,
             "project": self.project,
             "dataset": self.dataset,
-            "table_name": self.table_name,
-            "query": query,
-            "columns": df_spark.columns,
-            "record_count_sample": df_spark.count()
+            "tables_processed": table_results,
         }
-
-        spark.stop()
-
-        return result
 
 
 if __name__ == "__main__":
