@@ -32,7 +32,7 @@ class BigQuerySparkAgent:
 
         self.dataset = "new_data_set"
         self.materialization_dataset = "Test_Views"
-        self.table_name = "File_RM_Microsect"
+        self.table_name = "Cruise_Policy_Driven_Dataset"
 
         # KMS flag logic similar to your DataBuck script
         # N = use WIF token
