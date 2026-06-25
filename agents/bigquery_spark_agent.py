@@ -49,6 +49,11 @@ class BigQuerySparkAgent:
                 "work_type": "salary_profile",
                 "description": "Salary-focused profiling and high-value segment sample",
             },
+            {
+                "table_name": "MarketInte_Latestdata",
+                "work_type": "sampling",
+                "description": "Market Intelligence latest data sampling and inspection",
+            },
         ]
 
         # KMS flag logic similar to your DataBuck script
