@@ -54,6 +54,11 @@ class BigQuerySparkAgent:
                 "work_type": "sampling",
                 "description": "Market Intelligence latest data sampling and inspection",
             },
+            {
+                "table_name": "Bank_details",
+                "work_type": "sampling",
+                "description": "Bank account and customer financial details for validation and sampling",
+            },
         ]
 
         # KMS flag logic similar to your DataBuck script
