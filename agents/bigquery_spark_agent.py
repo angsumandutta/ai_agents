@@ -60,9 +60,9 @@ class BigQuerySparkAgent:
                 "description": "Bank account and customer financial details for validation and sampling",
             },
             {
-                "table_name": "policy_driven_telecom_network_incident_restoration_sample",
+                "table_name": "FE_RM_microsect2_formatted",
                 "work_type": "sampling",
-                "description": "policy driven telecom network incident restoration sample for sampling and analysis",
+                "description": "Formatted financial and risk management micro-segment data for sampling and analysis",
             },
         ]
 
