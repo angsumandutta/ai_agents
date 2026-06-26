@@ -64,6 +64,11 @@ class BigQuerySparkAgent:
                 "work_type": "sampling",
                 "description": "Formatted financial and risk management micro-segment data for sampling and analysis",
             },
+            {
+                "table_name": "File_RM_Microsect_Source",
+                "work_type": "sampling",
+                "description": "Source financial and risk management micro-segment data for validation, profiling, and sampling",
+            },
         ]
 
         # KMS flag logic similar to your DataBuck script
