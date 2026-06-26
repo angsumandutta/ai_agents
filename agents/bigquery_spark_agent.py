@@ -59,6 +59,11 @@ class BigQuerySparkAgent:
                 "work_type": "sampling",
                 "description": "Bank account and customer financial details for validation and sampling",
             },
+            {
+                "table_name": "policy_driven_telecom_network_incident_restoration_sample",
+                "work_type": "sampling",
+                "description": "policy driven telecom network incident restoration sample for sampling and analysis",
+            },
         ]
 
         # KMS flag logic similar to your DataBuck script
