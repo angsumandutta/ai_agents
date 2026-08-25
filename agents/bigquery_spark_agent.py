@@ -74,6 +74,11 @@ class BigQuerySparkAgent:
                 "work_type": "sampling",
                 "description": "Source employee demographic, contact, salary, education, performance, expense, and joining data for validation, profiling, and sampling",
             },
+            {
+                "table_name": "agentbuck_credit_card_offer_100_records_1",
+                "work_type": "sampling",
+                "description": "Customer credit card offer dataset containing customer identity, email, credit score, credit utilization, account status, and email consent data for record-level validation and personalized offer processing"
+            },
         ]
 
         # KMS flag logic similar to your DataBuck script
